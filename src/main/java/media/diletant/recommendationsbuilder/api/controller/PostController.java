@@ -1,21 +1,19 @@
 package media.diletant.recommendationsbuilder.api.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import media.diletant.recommendationsbuilder.api.model.base.Post;
 import media.diletant.recommendationsbuilder.api.service.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Optional;
 
 
 @Controller
-@RequestMapping("/api/post/")
+@RequestMapping("/api/post")
 public class PostController {
 
   private final PostRepository postRepository;
@@ -25,11 +23,11 @@ public class PostController {
     this.postRepository = postRepository;
   }
 
-  @GetMapping("/")
-  public ResponseEntity<Iterable<Post>> getAllPosts(@RequestParam("pageSize") int pageSize) throws IOException {
-    if (pageSize == 0) pageSize = 10;
+  @GetMapping
+  public ResponseEntity<Iterable<Post>> getAllPosts(
+      @RequestParam Optional<Integer> pageSize) throws IOException {
     return new ResponseEntity<>(
-        postRepository.findAll(pageSize),
+        postRepository.findAll(pageSize.orElse(10)),
         HttpStatus.OK
     );
   }

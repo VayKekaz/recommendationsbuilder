@@ -1,44 +1,51 @@
 package media.diletant.recommendationsbuilder.api.model.base;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import media.diletant.recommendationsbuilder.api.model.base.enumm.Region;
-import media.diletant.recommendationsbuilder.api.model.base.enumm.TimePeriod;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import media.diletant.recommendationsbuilder.api.model.base.enumm.Type;
 
-public class Post extends BaseEntity {
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-  Type type;
+public class Post extends BaseEntity {
+  private Type type;
+  // TimePeriod timePeriod;
+  // Region region;
   private String title;
-  private TimePeriod timePeriod;
-  private Region region;
+  private String description;
+  private String content;
+  private String author;
   private int completionTimeMinutes;
   private int views;
-  String content;
-  List<Question> questions;
+  private Date datePublished;
+  // private List<Question> questions;
 
   public Post(
       String id,
       Type type,
+      // TimePeriod timePeriod,
+      // Region region,
       String title,
-      TimePeriod timePeriod,
-      Region region,
+      String description,
+      String content,
+      String author,
       int completionTimeMinutes,
       int views,
-      String content,
-      List<Question> questions
+      Date datePublished
+      // List<Question> questions
   ) {
     super(id);
     setType(type);
+    // setTimePeriod(timePeriod);
+    // setRegion(region);
     setTitle(title);
-    setTimePeriod(timePeriod);
-    setRegion(region);
+    setDescription(description);
+    setContent(content);
+    setAuthor(author);
     setCompletionTimeMinutes(completionTimeMinutes);
     setViews(views);
-    setContent(content);
-    setQuestions(questions);
+    setDatePublished(datePublished);
+    // setQuestions(questions);
   }
 
   public Post() {
@@ -46,6 +53,41 @@ public class Post extends BaseEntity {
   }
 
   // get, set
+  public void setDatePublished(String dateString) {
+    try {
+      setDatePublished(
+          new SimpleDateFormat("yyyy-MM-dd").parse(dateString)
+      );
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public String getAuthor() {
+    return author;
+  }
+
+  public void setAuthor(String author) {
+    this.author = author;
+  }
+
+  public Date getDatePublished() {
+    return datePublished;
+  }
+
+  public void setDatePublished(Date datePublished) {
+    this.datePublished = datePublished;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  /*
   public List<Question> getQuestions() {
     return questions;
   }
@@ -62,7 +104,7 @@ public class Post extends BaseEntity {
     } else {
       this.questions = null;
     }
-  }
+  }   */
 
   public Type getType() {
     return type;
@@ -90,6 +132,7 @@ public class Post extends BaseEntity {
     this.title = title;
   }
 
+  /*
   public TimePeriod getTimePeriod() {
     return this.timePeriod;
   }
@@ -105,6 +148,7 @@ public class Post extends BaseEntity {
   public void setRegion(Region region) {
     this.region = region;
   }
+   */
 
   public int getCompletionTimeMinutes() {
     return this.completionTimeMinutes;

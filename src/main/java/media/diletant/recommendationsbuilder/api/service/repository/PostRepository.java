@@ -1,6 +1,5 @@
 package media.diletant.recommendationsbuilder.api.service.repository;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import media.diletant.recommendationsbuilder.api.model.base.Post;
 import org.elasticsearch.client.Request;
@@ -17,7 +16,7 @@ import java.util.Set;
 
 @Component
 public class PostRepository {
-  static String indexName = "post";
+  static final String indexName = "post";
   private final RestClient restClient;
   private final ObjectMapper mapper;
 
@@ -35,16 +34,17 @@ public class PostRepository {
   }
 
   public Set<Post> findAll(int pageSize, int startWith) throws IOException {
-    final var query = "{" +
-        "    \"from\": " + pageSize +
-        "    \"size\": " + startWith +
+    var query = "{" +
+        "    \"from\": " + startWith + "," +
+        "    \"size\": " + pageSize + "," +
         "    \"query\": {" +
         "        \"match_all\": {}" +
         "    }" +
         "}";
-    final var request = new Request("GET", "/" + indexName + "/_search");
+    System.out.println(query);
+    var request = new Request("GET", "/" + indexName + "/_search");
     request.setJsonEntity(query);
-    final var response = performRequestAndReturnBody(request);
+    var response = performRequestAndReturnBody(request);
     return getPostsFromFindAllResponse(response);
   }
 
@@ -58,39 +58,29 @@ public class PostRepository {
   }
 
   private Set<Post> getPostsFromFindAllResponse(String response) throws IOException {
-    final var responseWithoutMetadata = mapper.readTree(
+    var responseWithoutMetadata = mapper.readTree(
         mapper.readTree(response)
             .at("/hits/hits")
             .toString()
-    );
+    ); // extracting values from response string
     Set<Post> posts = new HashSet<>();
-    final var reader = mapper.readerFor(new TypeReference<Post>() {
-    });
-    for (final var element : responseWithoutMetadata) {
-      final var postNode = mapper.readTree(element.toString());
-      final var id = postNode.at("/_id").textValue();
-      final var source = postNode.at("/_source");
-      Post post = reader.readValue(source);
+    for (var element : responseWithoutMetadata) {
+      var postNode = mapper.readTree(element.toString());
+      var id = postNode.at("/_id").textValue();
+      var source = postNode.at("/_source");
+      Post post = mapper.readValue(source.toString(), Post.class);
       post.setId(id);
       posts.add(post);
     }
     return posts;
   }
 
-  public void save(Post entity) {
-    try {
-      saveOrThrowException(entity);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void saveOrThrowException(Post entity) throws IOException {
-    final var endpoint = "/" + indexName + "/_doc/" + entity.getId();
-    final var request = new Request(
+  public void save(Post entity) throws IOException {
+    var endpoint = "/" + indexName + "/_doc/" + entity.getId();
+    var request = new Request(
         "POST",
         endpoint);
-    final var jsonEntity = mapper.writeValueAsString(entity);
+    var jsonEntity = mapper.writeValueAsString(entity);
     request.setJsonEntity(jsonEntity);
     restClient.performRequestAsync(
         request,
@@ -111,7 +101,11 @@ public class PostRepository {
 
     @Override
     public void onFailure(Exception exception) { // retries to save entity
-      save(entity);
+      try {
+        save(entity);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 }

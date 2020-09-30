@@ -1,5 +1,6 @@
 package media.diletant.recommendationsbuilder.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.message.BasicHeader;
@@ -8,11 +9,14 @@ import org.elasticsearch.client.RestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.text.SimpleDateFormat;
+
 @Configuration
 public class Beans {
 
   @Bean
-  RestClient createRestClient() {
+  RestClient
+  createRestClient() {
     final var builder = RestClient.builder(
         new HttpHost("localhost", 9200, "http"));
     builder.setDefaultHeaders(new Header[]{
@@ -25,5 +29,13 @@ public class Beans {
       }
     });
     return builder.build();
+  }
+
+  @Bean
+  ObjectMapper
+  createJacksonMapper() {
+    var mapper = new ObjectMapper();
+    mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd"));
+    return mapper;
   }
 }
