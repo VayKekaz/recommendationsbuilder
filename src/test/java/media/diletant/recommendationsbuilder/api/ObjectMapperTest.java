@@ -2,7 +2,7 @@ package media.diletant.recommendationsbuilder.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import media.diletant.recommendationsbuilder.api.model.base.Post;
+import media.diletant.recommendationsbuilder.api.model.Post;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;

@@ -1,4 +1,4 @@
-package media.diletant.recommendationsbuilder.api.model.base;
+package media.diletant.recommendationsbuilder.api.model;
 
 import java.util.UUID;
 

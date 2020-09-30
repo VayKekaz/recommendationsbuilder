@@ -1,13 +1,12 @@
-package media.diletant.recommendationsbuilder.api.model.base;
+package media.diletant.recommendationsbuilder.api.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import media.diletant.recommendationsbuilder.api.model.base.enumm.Type;
+import media.diletant.recommendationsbuilder.api.model.enumm.Type;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Post extends BaseEntity {
+public class Post extends BaseEntity implements Score {
   private Type type;
   // TimePeriod timePeriod;
   // Region region;
@@ -19,6 +18,8 @@ public class Post extends BaseEntity {
   private int views;
   private Date datePublished;
   // private List<Question> questions;
+  private double score;
+  private boolean scoreRecalculated = false;
 
   public Post(
       String id,
@@ -31,8 +32,9 @@ public class Post extends BaseEntity {
       String author,
       int completionTimeMinutes,
       int views,
-      Date datePublished
+      Date datePublished,
       // List<Question> questions
+      double score
   ) {
     super(id);
     setType(type);
@@ -45,6 +47,7 @@ public class Post extends BaseEntity {
     setCompletionTimeMinutes(completionTimeMinutes);
     setViews(views);
     setDatePublished(datePublished);
+    setScore(score);
     // setQuestions(questions);
   }
 
@@ -53,6 +56,21 @@ public class Post extends BaseEntity {
   }
 
   // get, set
+  public double getScore() {
+    if (scoreRecalculated)
+      return this.score;
+    var viewScore = this.views * Score.viewsCoefficient;
+    var dateScore = Math.abs(new Date().getTime() - datePublished.getTime()) * Score.timeDifferenceCoefficient;
+    setScore(this.score + viewScore + dateScore);
+    this.scoreRecalculated = true;
+    return this.score;
+  }
+
+  public void setScore(double score) {
+    this.score = score;
+    this.scoreRecalculated = false;
+  }
+
   public void setDatePublished(String dateString) {
     try {
       setDatePublished(

@@ -1,4 +1,4 @@
-package media.diletant.recommendationsbuilder.api.model.base.enumm;
+package media.diletant.recommendationsbuilder.api.model.enumm;
 
 public enum TimePeriod {
   ancientWorld("до VIII до н.э."),
