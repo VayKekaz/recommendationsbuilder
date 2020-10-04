@@ -7,7 +7,7 @@
     1. Load post index model <br>
         `curl -XPUT "http://localhost:9200/post?pretty" -H "Content-Type: application/json" -d "@\src\main\resources\indexModel.json"`
     2. Load test entities to index, I used [elasticsearch_loader](https://github.com/moshe/elasticsearch_loader) <br>
-        `elasticsearch_loader --index post json .\src\main\resources\articlesData.json`
+        `elasticsearch_loader --index post json .\src\main\resources\articlesData.json` <br>
         `elasticsearch_loader --index post json .\src\main\resources\quizData.json`
 3. Start this app `.\gradlew bootRun`.
 ## Endpoints
