@@ -1,6 +1,5 @@
 package media.diletant.recommendationsbuilder.api.controller;
 
-import media.diletant.recommendationsbuilder.api.Words;
 import media.diletant.recommendationsbuilder.api.exception.EntityNotFoundException;
 import media.diletant.recommendationsbuilder.api.model.Post;
 import media.diletant.recommendationsbuilder.api.repository.PostRepository;
@@ -9,8 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 

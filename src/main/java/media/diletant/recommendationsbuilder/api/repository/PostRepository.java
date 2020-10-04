@@ -3,6 +3,7 @@ package media.diletant.recommendationsbuilder.api.repository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import media.diletant.recommendationsbuilder.api.Words;
 import media.diletant.recommendationsbuilder.api.exception.EntityNotFoundException;
 import media.diletant.recommendationsbuilder.api.model.Post;
 import org.elasticsearch.client.Request;
@@ -53,7 +54,6 @@ public class PostRepository {
         "        \"match_all\": {}" +
         "    }" +
         "}";
-    System.out.println(query);
     var request = new Request("GET", "/" + indexName + "/_search");
     request.setJsonEntity(query);
     var response = performRequestAndGetBody(request);

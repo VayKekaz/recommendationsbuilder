@@ -32,8 +32,7 @@ class RecommendationsQueryBuilder {
   }
 
   public String createMultiMatchQueryFor(String searchString, String excludeId) {
-    System.out.println(searchString);
-    searchString = escapeControlChars(searchString);
+    searchString = processStringQuery(searchString);
     System.out.println(searchString);
     // TODO: make search across quizzes
     // https://stackoverflow.com/questions/64155263/elasticsearch-search-across-multiple-fields-including-nested
@@ -99,12 +98,20 @@ class RecommendationsQueryBuilder {
     return query;
   }
 
-  private static String escapeControlChars(String input) {
-    return input
-        .replace("\n", "\\n")
-        .replace("\"", "\\\"")
-        .replace("\r", "\\r")
-        .replace("\f", "\\f")
-        .replace("\t", "\\t");
+  private static String processStringQuery(String query) {
+    return deleteControlChars(query)
+        .replaceAll("\\pP", " ")
+        .replaceAll(Words.stoppingPattern, " ")
+        .replaceAll(Words.endingsPattern, " ");
   }
+
+  private static String deleteControlChars(String input) {
+    return input
+        .replace("\n", " ")
+        .replace("\"", " ")
+        .replace("\r", " ")
+        .replace("\f", " ")
+        .replace("\t", " ");
+  }
+
 }
