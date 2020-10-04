@@ -9,7 +9,7 @@
     2. Load test entities to index, I used [elasticsearch_loader](https://github.com/moshe/elasticsearch_loader) <br>
         `elasticsearch_loader --index post json .\src\main\resources\articlesData.json`
         `elasticsearch_loader --index post json .\src\main\resources\quizData.json`
-3. Start this app.
+3. Start this app `.\gradlew bootRun`.
 ## Endpoints
 1. GET /api/post?pageSize - returns you all posts, pageSize is 10 by default
 2. GET /api/post/search - returns posts by search query. <br>
