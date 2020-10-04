@@ -37,6 +37,12 @@ public class PostController {
     return response;
   }
 
+  /**
+  Consumes json in format
+  {
+    "query": "<your search string here>"
+  }
+   */
   @GetMapping(value = "/search", consumes = "application/json")
   public ResponseEntity<Iterable<Post>> searchFor(@RequestBody Map<String, Object> body) {
     ResponseEntity<Iterable<Post>> response;
