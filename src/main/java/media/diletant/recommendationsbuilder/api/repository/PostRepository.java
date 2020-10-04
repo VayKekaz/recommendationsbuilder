@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import media.diletant.recommendationsbuilder.api.exception.EntityNotFoundException;
 import media.diletant.recommendationsbuilder.api.model.Post;
 import org.elasticsearch.client.Request;
+import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,6 +19,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Class powered by RestClient.
+ * Makes requests to elasticsearch and handles serialization / deserialization.
+ */
 @Component
 public class PostRepository {
   static final String indexName = "post";
@@ -36,11 +41,11 @@ public class PostRepository {
     this.recommendationsQueryBuilder = recommendationsQueryBuilder;
   }
 
-  public Set<Post> findAll(int pageSize) throws IOException {
+  public Set<Post> findAll(int pageSize) throws EntityNotFoundException {
     return findAll(pageSize, 0);
   }
 
-  public Set<Post> findAll(int pageSize, int startWith) throws IOException {
+  public Set<Post> findAll(int pageSize, int startWith) throws EntityNotFoundException {
     var query = "{" +
         "    \"from\": " + startWith + "," +
         "    \"size\": " + pageSize + "," +
@@ -55,7 +60,7 @@ public class PostRepository {
     return getPostsFromSearchResponse(response);
   }
 
-  private String performRequestAndGetBody(Request request) {
+  private String performRequestAndGetBody(Request request) throws EntityNotFoundException {
     String body;
     try {
       body = new String(
@@ -64,7 +69,10 @@ public class PostRepository {
               .getContent()
               .readAllBytes()
       );
-    } catch (IOException e) { // this should not be thrown
+    } catch (ResponseException e) {
+      e.printStackTrace();
+      throw new EntityNotFoundException();
+    } catch (IOException e) { // just a placeholder, this should not be thrown
       e.printStackTrace();
       body = null;
     }
@@ -95,11 +103,12 @@ public class PostRepository {
   private Post getPostFrom(JsonNode postNode) {
     var id = postNode.at("/_id").textValue();
     var score = postNode.at("/score").asDouble();
-    var source = postNode.at("/_source");
+    var source = postNode.at("/_source"); // actual entity
     Post post;
     try {
       post = mapper.readValue(source.toString(), Post.class);
     } catch (JsonProcessingException e) {
+      e.printStackTrace();
       throw new IllegalArgumentException("Invalid postNode provided");
     }
     post.setId(id);
@@ -133,14 +142,25 @@ public class PostRepository {
     return found;
   }
 
+  public List<Post> searchBy(String query) throws EntityNotFoundException {
+    var request = new Request("GET", "/" + indexName + "/_search");
+    request.setJsonEntity(recommendationsQueryBuilder.createMultiMatchQueryFor(query));
+    var posts = getPostsFromSearchResponse(performRequestAndGetBody(request));
+    return posts.stream()
+        .sorted(Comparator.comparingDouble(Post::getScore))
+        .collect(Collectors.toUnmodifiableList());
+  }
+
   public List<Post> getSimilarById(String id) throws EntityNotFoundException {
     return getSimilarTo(getBy(id));
   }
 
-  public List<Post> getSimilarTo(Post post) {
+  public List<Post> getSimilarTo(Post post) throws EntityNotFoundException {
     var request = new Request("GET", "/" + indexName + "/_search");
     request.setJsonEntity(recommendationsQueryBuilder.buildQueryFor(post));
     var posts = getPostsFromSearchResponse(performRequestAndGetBody(request));
-    return posts.stream().sorted(Comparator.comparingDouble(Post::getScore).reversed()).collect(Collectors.toList());
+    return posts.stream()
+        .sorted(Comparator.comparingDouble(Post::getScore))
+        .collect(Collectors.toUnmodifiableList());
   }
 }

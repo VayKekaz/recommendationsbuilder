@@ -1,84 +1,59 @@
 package media.diletant.recommendationsbuilder.api.model;
 
-import media.diletant.recommendationsbuilder.api.model.enumm.Type;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Objects;
 
-public class Post extends BaseEntity implements Score {
-  private Type type;
-  // TimePeriod timePeriod;
-  // Region region;
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Article.class, name = "article"),
+    @JsonSubTypes.Type(value = Newspaper.class, name = "newspaper"),
+    @JsonSubTypes.Type(value = Quiz.class, name = "quiz")
+})
+public abstract class Post extends BaseEntity {
   private String title;
   private String description;
-  private String content;
   private String author;
   private int completionTimeMinutes;
-  private int views;
-  private Date datePublished;
-  // private List<Question> questions;
-  private double score;
-  private boolean scoreRecalculated = false;
+  double score;
 
   public Post(
       String id,
-      Type type,
-      // TimePeriod timePeriod,
-      // Region region,
       String title,
       String description,
-      String content,
       String author,
-      int completionTimeMinutes,
-      int views,
-      Date datePublished,
-      // List<Question> questions
       double score
   ) {
     super(id);
-    setType(type);
-    // setTimePeriod(timePeriod);
-    // setRegion(region);
     setTitle(title);
     setDescription(description);
-    setContent(content);
     setAuthor(author);
     setCompletionTimeMinutes(completionTimeMinutes);
-    setViews(views);
-    setDatePublished(datePublished);
     setScore(score);
-    // setQuestions(questions);
   }
 
   public Post() {
     super();
   }
 
+  @JsonIgnore
+  public String buildElasticsearchString() {
+    var title = Objects.requireNonNullElse(getTitle(), "");
+    var description = Objects.requireNonNullElse(getDescription(), "");
+    return title + ' ' + description;
+  }
+
   // get, set
   public double getScore() {
-    if (scoreRecalculated)
-      return this.score;
-    var viewScore = this.views * Score.viewsCoefficient;
-    var dateScore = Math.abs(new Date().getTime() - datePublished.getTime()) * Score.timeDifferenceCoefficient;
-    setScore(this.score + viewScore + dateScore);
-    this.scoreRecalculated = true;
     return this.score;
   }
 
   public void setScore(double score) {
     this.score = score;
-    this.scoreRecalculated = false;
-  }
-
-  public void setDatePublished(String dateString) {
-    try {
-      setDatePublished(
-          new SimpleDateFormat("yyyy-MM-dd").parse(dateString)
-      );
-    } catch (ParseException e) {
-      e.printStackTrace();
-    }
   }
 
   public String getAuthor() {
@@ -89,57 +64,12 @@ public class Post extends BaseEntity implements Score {
     this.author = author;
   }
 
-  public Date getDatePublished() {
-    return datePublished;
-  }
-
-  public void setDatePublished(Date datePublished) {
-    this.datePublished = datePublished;
-  }
-
   public String getDescription() {
     return description;
   }
 
   public void setDescription(String description) {
     this.description = description;
-  }
-
-  /*
-  public List<Question> getQuestions() {
-    return questions;
-  }
-
-  public void setQuestions(List<Question> questions) {
-    if (this.type == Type.quiz
-        && questions != null
-        && questions.size() != 0) {
-      this.questions = questions;
-      this.content = questions
-          .stream()
-          .map(Question::getTitle)
-          .collect(Collectors.joining("\n\n"));
-    } else {
-      this.questions = null;
-    }
-  }   */
-
-  public Type getType() {
-    return type;
-  }
-
-  public void setType(Type type) {
-    this.type = type;
-  }
-
-  public String getContent() {
-    return content;
-  }
-
-  public void setContent(String content) {
-    if (this.type == Type.quiz)
-      return;
-    this.content = content;
   }
 
   public String getTitle() {
@@ -150,24 +80,6 @@ public class Post extends BaseEntity implements Score {
     this.title = title;
   }
 
-  /*
-  public TimePeriod getTimePeriod() {
-    return this.timePeriod;
-  }
-
-  public void setTimePeriod(TimePeriod period) {
-    this.timePeriod = period;
-  }
-
-  public Region getRegion() {
-    return this.region;
-  }
-
-  public void setRegion(Region region) {
-    this.region = region;
-  }
-   */
-
   public int getCompletionTimeMinutes() {
     return this.completionTimeMinutes;
   }
@@ -176,11 +88,4 @@ public class Post extends BaseEntity implements Score {
     this.completionTimeMinutes = minutes;
   }
 
-  public int getViews() {
-    return this.views;
-  }
-
-  public void setViews(int views) {
-    this.views = views;
-  }
 }

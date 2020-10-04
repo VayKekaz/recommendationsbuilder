@@ -1,14 +1,13 @@
 package media.diletant.recommendationsbuilder.api.model;
 
-import java.util.Set;
+import java.util.List;
 
-public final class Question extends BaseEntity {
+public class Question {
   private String question;
-  private Set<String> answers;
+  private List<String> answers;
   private int rightAnswer;
 
-  public Question(String id, String question, Set<String> answers, int rightAnswer) {
-    super(id);
+  public Question(String question, List<String> answers, int rightAnswer) {
     this.question = question;
     this.answers = answers;
     this.rightAnswer = rightAnswer;
@@ -30,11 +29,11 @@ public final class Question extends BaseEntity {
     this.question = question;
   }
 
-  public final Set<String> getAnswers() {
+  public final List<String> getAnswers() {
     return this.answers;
   }
 
-  public final void setAnswers(Set<String> answers) {
+  public final void setAnswers(List<String> answers) {
     this.answers = answers;
   }
 

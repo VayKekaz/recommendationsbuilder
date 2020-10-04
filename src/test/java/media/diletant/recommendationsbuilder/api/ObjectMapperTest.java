@@ -2,22 +2,24 @@ package media.diletant.recommendationsbuilder.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import media.diletant.recommendationsbuilder.api.model.Article;
 import media.diletant.recommendationsbuilder.api.model.Post;
+import media.diletant.recommendationsbuilder.api.model.Quiz;
 import org.junit.jupiter.api.Test;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Map;
 
 public class ObjectMapperTest {
   private final ObjectMapper mapper = new Beans().createJacksonMapper();
 
   @Test
-  void deserializationTest() throws JsonProcessingException {
+  void deserializationTest() throws JsonProcessingException, ParseException {
     var testDate = "2020-12-25";
-    var post = new Post();
-    post.setDatePublished(testDate);
+    var df = new SimpleDateFormat("yyyy-MM-dd");
+    var post = new Article();
+    post.setDatePublished(df.parse(testDate));
     var deserializedValue = mapper.writeValueAsString(post);
     var serializedDate = mapper.readValue(deserializedValue, Map.class).get("datePublished");
     System.out.println("serializedDate=" + serializedDate.toString() + "\ntestDate=" + testDate);
@@ -25,10 +27,21 @@ public class ObjectMapperTest {
   }
 
   @Test
-  void dateTimeFormatTest() throws ParseException {
-    var testDate = "2020-12-25";
-    Date date = new SimpleDateFormat("yyyy-MM-dd").parse(testDate);
-    System.out.println(date);
-    assert date.toString().equals(testDate);
+  void polymorphicMappingTest() throws JsonProcessingException {
+    var article = new Article();
+    article.setContent("Some content yay");
+    var quiz = new Quiz();
+    quiz.setQuestionCount(5);
+
+    var articleJson = mapper.writeValueAsString(article);
+    var quizJson = mapper.writeValueAsString(quiz);
+    System.out.println(articleJson + '\n' + quizJson);
+
+    var articleFromJson = mapper.readValue(articleJson, Post.class);
+    var quizFromJson = mapper.readValue(quizJson, Post.class);
+
+    System.out.println("articleFromJson type is " + articleFromJson.getClass().getSimpleName()
+        + '\n' + "quizFromJson type is" + quizFromJson.getClass().getSimpleName());
+    assert articleFromJson instanceof Article & quizFromJson instanceof Quiz;
   }
 }

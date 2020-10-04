@@ -1,35 +1,24 @@
 package media.diletant.recommendationsbuilder.api.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import media.diletant.recommendationsbuilder.api.Words;
 import media.diletant.recommendationsbuilder.api.model.Post;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
 
 @Component
 class RecommendationsQueryBuilder {
-  private final ObjectMapper mapper;
-
-  @Autowired
-  public RecommendationsQueryBuilder(ObjectMapper mapper) {
-    this.mapper = mapper;
-  }
 
   public String buildQueryFor(Post post) {
-    var searchString = escapeControlChars(
-        post.getTitle() + " " +
-            post.getDescription() + " " +
-            post.getContent());
-    var should_query = new ArrayList<String>();
+    String searchString = post.buildElasticsearchString();
+    return createMultiMatchQueryFor(searchString, post.getId());
+  }
 
+  private String createShouldQueryFor(String searchString) {
+    var shouldQuery = new ArrayList<String>();
     for (var word : Words.history) {
       if (searchString.contains(word))
-        should_query.add("{" +
+        shouldQuery.add("{" +
             "    \"match\": {" +
             "        \"content\": {" +
             "            \"query\": \"" + word + "\"," +
@@ -39,26 +28,78 @@ class RecommendationsQueryBuilder {
             "}"
         );
     }
+    return "[" + String.join(", ", shouldQuery) + "]";
+  }
 
+  public String createMultiMatchQueryFor(String searchString, String excludeId) {
+    System.out.println(searchString);
+    searchString = escapeControlChars(searchString);
+    System.out.println(searchString);
+    // TODO: make search across quizzes
+    // https://stackoverflow.com/questions/64155263/elasticsearch-search-across-multiple-fields-including-nested
     return "{" +
         "    \"query\": {" +
         "        \"bool\": {" +
-        "            \"must\": {" +
-        "                \"multi_match\": {" +
-        "                    \"query\": \"" + searchString + "\"," +
-        "                    \"fields\": [\"title^5\", \"content^2\"]," +
-        "                    \"slop\": 1" +
+        "            \"must\": [" +
+        "                {" +
+        "                    \"multi_match\": {" +
+        "                        \"query\": \"" + searchString + "\"," +
+        "                        \"type\": \"cross_fields\"," +
+        "                        \"fields\": [" +
+        "                            \"title^5\"," +
+        "                            \"description^3\"," +
+        "                            \"content\"" +
+        "                        ]" +
+        "                    }" +
         "                }" +
-        "            }," +
-        "            \"should\": [" +
-        "            " + String.join(", ", should_query) +
-        "            ]" +
+        /*
+        "                {" +
+        "                    \"nested\": {" +
+        "                        \"path\": \"questions\"," +
+        "                        \"query\": {" +
+        "                            \"multi_match\": {" +
+        "                                \"query\": \"" + searchString + "\"," +
+        "                                \"type\": \"cross_fields\"," +
+        "                                \"fields\": [" +
+        "                                    \"questions.question\"," +
+        "                                    \"questions.answers\"" +
+        "                                ]" +
+        "                            }" +
+        "                        }" +
+        "                    }" +
+        "                }" +
+         */
+        "            ]," +
+        "            \"should\": " + createShouldQueryFor(searchString) + "," +
+        "            \"must_not\": " + createExcludeIdQuery(excludeId) +
         "        }" +
         "    }" +
         "}";
   }
 
-  private String escapeControlChars(String input) {
+  private String createExcludeIdQuery(String excludeId) {
+    String mustNotQuery;
+    if (excludeId == null) {
+      mustNotQuery = "{" +
+          "    \"ids\": {}" +
+          "}";
+    } else {
+      mustNotQuery = "{" +
+          "    \"ids\": {" +
+          "        \"values\": [\"" + excludeId + "\"]" +
+          "    }" +
+          "}";
+    }
+    return mustNotQuery;
+  }
+
+  public String createMultiMatchQueryFor(String searchString) {
+    var query = createMultiMatchQueryFor(searchString, null);
+    System.out.println(query);
+    return query;
+  }
+
+  private static String escapeControlChars(String input) {
     return input
         .replace("\n", "\\n")
         .replace("\"", "\\\"")

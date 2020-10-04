@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -25,12 +27,35 @@ public class PostController {
   }
 
   @GetMapping
-  public ResponseEntity<Iterable<Post>> getAllPosts(
-      @RequestParam Optional<Integer> pageSize) throws IOException {
-    return new ResponseEntity<>(
-        postRepository.findAll(pageSize.orElse(10)),
-        HttpStatus.OK
-    );
+  public ResponseEntity<Iterable<Post>> getAllPosts(@RequestParam Optional<Integer> pageSize) {
+    ResponseEntity<Iterable<Post>> response;
+    try {
+      response = new ResponseEntity<>(
+          postRepository.findAll(pageSize.orElse(10)),
+          HttpStatus.OK
+      );
+    } catch (EntityNotFoundException e) {
+      response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return response;
+  }
+
+  @GetMapping(value = "/search", consumes = "application/json")
+  public ResponseEntity<Iterable<Post>> searchFor(@RequestBody Map<String, Object> body) {
+    ResponseEntity<Iterable<Post>> response;
+    try {
+      var query = (String) body.getOrDefault("query", "");
+      response = new ResponseEntity<>(
+          postRepository.searchBy(query),
+          HttpStatus.OK
+      );
+    } catch (ClassCastException e) {
+      response = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    } catch (EntityNotFoundException e) {
+      e.printStackTrace();
+      response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    return response;
   }
 
   @GetMapping("/recommendations/{postId}")
@@ -44,15 +69,6 @@ public class PostController {
     } catch (EntityNotFoundException e) {
       response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    System.out.println("METHOD CALLED");
     return response;
-  }
-
-  @GetMapping("/test")
-  public ResponseEntity<String[]> test() {
-    return new ResponseEntity<>(
-        Words.stopping,
-        HttpStatus.OK
-    );
   }
 }
