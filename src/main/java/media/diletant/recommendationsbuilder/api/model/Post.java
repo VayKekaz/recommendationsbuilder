@@ -11,8 +11,6 @@ import java.util.Objects;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Article.class, name = "article"),
-    @JsonSubTypes.Type(value = Newspaper.class, name = "newspaper"),
-    @JsonSubTypes.Type(value = Quiz.class, name = "quiz")
 })
 public abstract class Post extends BaseEntity {
   private String title;
