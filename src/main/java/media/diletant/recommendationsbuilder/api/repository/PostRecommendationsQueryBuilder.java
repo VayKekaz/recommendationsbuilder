@@ -7,35 +7,18 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 
 @Component
-class RecommendationsQueryBuilder {
+class PostRecommendationsQueryBuilder implements
+    ElasticsearchQueryBuilder<Post>, ElasticsearchRecommendationsBuilder<Post> {
 
+  @Override
   public String buildQueryFor(Post post) {
     String searchString = post.buildElasticsearchString();
     return createMultiMatchQueryFor(searchString, post.getId());
   }
 
-  private String createShouldQueryFor(String searchString) {
-    var shouldQuery = new ArrayList<String>();
-    for (var word : Words.history) {
-      if (searchString.contains(word))
-        shouldQuery.add("{" +
-            "    \"match\": {" +
-            "        \"content\": {" +
-            "            \"query\": \"" + word + "\"," +
-            "            \"boost\": 1.25" +
-            "        }" +
-            "    }" +
-            "}"
-        );
-    }
-    return "[" + String.join(", ", shouldQuery) + "]";
-  }
-
   public String createMultiMatchQueryFor(String searchString, String excludeId) {
     searchString = processStringQuery(searchString);
     System.out.println(searchString);
-    // TODO: make search across quizzes
-    // https://stackoverflow.com/questions/64155263/elasticsearch-search-across-multiple-fields-including-nested
     return "{" +
         "    \"query\": {" +
         "        \"bool\": {" +
@@ -52,6 +35,8 @@ class RecommendationsQueryBuilder {
         "                    }" +
         "                }" +
         /*
+        this fragment was supposed to recommend not only articles but also quizzes
+        but id didn't work so i just removed it
         "                {" +
         "                    \"nested\": {" +
         "                        \"path\": \"questions\"," +
@@ -74,6 +59,23 @@ class RecommendationsQueryBuilder {
         "        }" +
         "    }" +
         "}";
+  }
+
+  private String createShouldQueryFor(String searchString) {
+    var shouldQuery = new ArrayList<String>();
+    for (var word : Words.history) {
+      if (searchString.contains(word))
+        shouldQuery.add("{" +
+            "    \"match\": {" +
+            "        \"content\": {" +
+            "            \"query\": \"" + word + "\"," +
+            "            \"boost\": 1.25" +
+            "        }" +
+            "    }" +
+            "}"
+        );
+    }
+    return "[" + String.join(", ", shouldQuery) + "]";
   }
 
   private String createExcludeIdQuery(String excludeId) {

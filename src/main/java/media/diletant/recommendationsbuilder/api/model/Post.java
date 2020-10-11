@@ -17,7 +17,6 @@ public abstract class Post extends BaseEntity {
   private String description;
   private String author;
   private int completionTimeMinutes;
-  double score;
 
   public Post(
       String id,
@@ -26,19 +25,17 @@ public abstract class Post extends BaseEntity {
       String author,
       double score
   ) {
-    super(id);
+    super(id, score);
     setTitle(title);
     setDescription(description);
     setAuthor(author);
     setCompletionTimeMinutes(completionTimeMinutes);
-    setScore(score);
   }
 
   public Post() {
     super();
   }
 
-  @JsonIgnore
   public String buildElasticsearchString() {
     var title = Objects.requireNonNullElse(getTitle(), "");
     var description = Objects.requireNonNullElse(getDescription(), "");
@@ -46,14 +43,6 @@ public abstract class Post extends BaseEntity {
   }
 
   // get, set
-  public double getScore() {
-    return this.score;
-  }
-
-  public void setScore(double score) {
-    this.score = score;
-  }
-
   public String getAuthor() {
     return author;
   }

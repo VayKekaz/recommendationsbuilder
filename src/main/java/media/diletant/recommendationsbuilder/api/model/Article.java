@@ -32,10 +32,10 @@ public class Article extends Post {
   @Override
   public double getScore() {
     if (scoreRecalculated)
-      return this.score;
+      return super.getScore();
     var viewScore = this.views * scoreByViews;
     var dateScore = getDateScore();
-    setScore(this.score + viewScore + dateScore);
+    setScore(super.getScore() + viewScore + dateScore);
     this.scoreRecalculated = true;
     return super.getScore();
   }
