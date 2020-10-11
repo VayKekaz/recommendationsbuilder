@@ -2,7 +2,7 @@ package media.diletant.recommendationsbuilder.api;
 
 import io.micrometer.core.instrument.util.IOUtils;
 
-public class Words {
+public abstract class Words {
   public final static String endingsPattern =
       "\\B(ый|ой|ая|ое|ые|ому|а|о|у|е|ого|ему|и|ство|ых|ох|ия|ий|ь|я|он|ют|ат)\\b";
   public final static String stoppingPattern = "\\b(" + String.join(
